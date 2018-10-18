@@ -8,6 +8,7 @@ const dev = process.env.NODE_ENV !== 'production'
 const test = process.env.NODE_TEST === 'test'
 const app = next({ dev })
 const handle = app.getRequestHandler()
+const axios = require('axios')
 
 // This is where we cache our rendered HTML pages
 const ssrCache = new LRUCache({
@@ -77,6 +78,15 @@ app.prepare()
     server.use(router.get('/me/about', ctx => renderAndCache(ctx, '/3-me/5-about')))
     server.use(router.get('/me/feedback', ctx => renderAndCache(ctx, '/3-me/6-feedback')))
     server.use(router.get('/me/data', ctx => renderAndCache(ctx, '/3-me/7-myData', 'noCache')))
+    server.use(router.get('/api/*', async function (ctx) {
+      const res = await axios({
+        baseURL: 'http://jr.duduapp.net',
+        method: 'get',
+        url: ctx.originalUrl
+      })
+      ctx.body = res.data
+    }))
+
 
     server.use(async (ctx) => {
       await handle(ctx.req, ctx.res)
